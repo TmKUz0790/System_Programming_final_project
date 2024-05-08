@@ -27,10 +27,10 @@ int randome(int lambda_n){
     }
     return -1;}
 
-int private_key(int e, int lambda_n){
+int private_key(int enc, int lambda_n){
     for (int i = 1; i < lambda_n; i++){
-        if ((i * e) % lambda_n == 1){
-            printf("\nThus, (i * e) %% lambda_n = 1, (%d * %d) %% %d = 1", i, e,lambda_n);
+        if ((i * enc) % lambda_n == 1){
+            printf("\nThus, (i * enc) %% lambda_n = 1, (%d * %d) %% %d = 1", i, enc,lambda_n);
             return i;}
     }
 
@@ -60,19 +60,18 @@ long pomod(long a, long b, long m){
 
  */
 
-char *encrypt(char *message, long e, long n){
-    long i;
+char *encrypt(char *message, long enc, long n){
+    long len = strlen(message);     // taking length of message
+    char *cipher = (char *)malloc((len+1) * sizeof(char));
 
-    long len = strlen(message);
-
-    char *cipher = (char *)malloc(len * sizeof(char));
-
-    for (i = 0; i < len; i++)    {
-        cipher[i] = pomod(message[i], e, n);
+    for (long i = 0; i < len; i++)    {
+        cipher[i] = pomod(message[i], enc, n);
         printf("\n%c -> %c", message[i], cipher[i]);
     }
 
-    return cipher;}
+    cipher[len] = '\0';
+    return cipher;
+}
 
 /* Decryption
 
@@ -87,19 +86,21 @@ char *encrypt(char *message, long e, long n){
 char *decrypt(char *cipher, long d, long n){
     long i;
     long len = strlen(cipher);
-    char *message = (char *)malloc(len * sizeof(char));
+    char *message = (char *)malloc((len+1) * sizeof(char));
     for (i = 0; i < len; i++){
         // message[i] = (long) pow(cipher[i], d) % n;
         message[i] = pomod(cipher[i], d, n);
         printf("\n%c -> %c", cipher[i], message[i]);
     }
 
-    return message;}
+    message[len] = '\0';
+    return message;
+}
 
 int main(){
     int p, q, lambda_n;
 
-    long n, e, d;
+    long n, enc, d;
 
     char *message;
 
@@ -116,15 +117,15 @@ int main(){
     if (isPrime(p) && isPrime(q))    {
         n = p * q;
         lambda_n = totient(p, q);
-        e = randome(lambda_n);
+        enc = randome(lambda_n);
 
-        d = private_key(e, lambda_n);
+        d = private_key(enc, lambda_n);
 
         printf("\nThe value of n is %ld", n);
 
         printf("\nThe value of lambda_n is %d", lambda_n);
 
-        printf("\nThe value of e is %ld", e);
+        printf("\nThe value of e is %ld", enc);
 
         printf("\nThe value of d is %ld", d);
 
@@ -134,15 +135,15 @@ int main(){
 
         scanf("%s", message);
 
-        cipher = encrypt(message, e, n);
+        cipher = encrypt(message, enc, n);
 
-        puts("\nThe encrypted message is: ");
+        puts("%s\nThe encrypted message is: ");
 
         printf("%s", cipher);
 
         message = decrypt(cipher, d, n);
 
-        puts("\nThe original message was: ");
+        puts("%s\nThe original message was: ");
 
         printf("%s", message);}
 
