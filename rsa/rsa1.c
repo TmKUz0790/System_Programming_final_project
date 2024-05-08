@@ -92,8 +92,8 @@ long long int decrypt(int encrypted_text) {
     int d = private_key;
     long long int decrypted = 1;
     while (d--) {
-        decrypted *= encrypted_text;
-        decrypted %= n;
+        decrypted *= encrypted_text; 
+        decrypted %= n;  
     }
     return decrypted;
 }
@@ -118,12 +118,18 @@ void decoder(int *encoded, char *decoded) {
 
 int main() {
     FILE* fptr;
+    FILE* output_file;
     int counter = 0;
     char* buffer;
+    char filename[1000];
 
-    fptr = fopen("text.txt", "r");
+    printf("please enter filename: ");
+    scanf("%s",filename);
 
-    if (fptr == NULL) {
+    fptr = fopen(filename, "r");
+    output_file = fopen("encrypted.txt", "w");
+
+    if (fptr == NULL || output_file == NULL) {
         printf("Failed to open the file.\n");
         return 1;
     }
@@ -154,17 +160,20 @@ int main() {
     int encoded[100];
     encoder(buffer, encoded);
 
-    printf("Initial message:\n%s\n\n", buffer);
-    printf("The encoded message(encrypted by public key):\n");
+    // printf("Initial message:\n%s\n\n", buffer);
+    // printf("The encoded message(encrypted by public key):\n");
     int i = 0;
     while (encoded[i] != -1) {
-        printf("%d", encoded[i]);
+        fprintf(output_file,"%d", encoded[i]);
         i++;
     }
 
-    char decoded[100];
-    decoder(encoded, decoded);
-    printf("\n\nThe decoded message(decrypted by private key):\n%s\n", decoded);
+    // char decoded[100];
+    // decoder(encoded, decoded);
+    // printf("\n\nThe decoded message(decrypted by private key):\n%s\n", decoded);
+    
+    fclose(fptr);
+    fclose(output_file);
 
     return 0;
 }
