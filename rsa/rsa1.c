@@ -25,12 +25,17 @@ void primefiller() {
     seive[0] = false;
     seive[1] = false;
 
-    for (int i = 2; i < MAX_SIZE; i++) {
-        if (seive[i]) {
-            prime[prime_count++] = i;
-            for (int j = i * 2; j < MAX_SIZE; j += i) {
-                seive[j] = false;
+    for(int p = 2; p*p < MAX_SIZE; p++){
+        if(seive[p]){
+            for(int j = p*p; j<MAX_SIZE; j+=p){
+                seive[j] = false; 
             }
+        }
+    }
+
+    for(int k = 2; k < MAX_SIZE; k++){
+        if(seive[k]){
+            prime[prime_count++] = k;
         }
     }
 }
@@ -160,8 +165,8 @@ int main() {
     int encoded[100];
     encoder(buffer, encoded);
 
-    // printf("Initial message:\n%s\n\n", buffer);
-    // printf("The encoded message(encrypted by public key):\n");
+    printf("Initial message:\n%s\n\n", buffer);
+    printf("The encoded message(encrypted by public key):\n");
     int i = 0;
     while (encoded[i] != -1) {
         fprintf(output_file,"%d", encoded[i]);
