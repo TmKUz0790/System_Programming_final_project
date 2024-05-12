@@ -7,15 +7,47 @@
 
 int prime[MAX_SIZE];
 int prime_count = 0;
+bool used[250] = {false};     //Array to track used primes 
 
 int public_key;
 int private_key;
 int n;
 
-int gcd(int a, int b){
-    if (a == 0) return b;
-    return gcd(b % a, a);
+int gcd(int a, int b) {
+    if(a == 0) return b;
+    else{
+        while (b != 0) {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
 }
+
+int mod_inverse(int a, int m) {
+    int m0 = m, t, q;
+    int x0 = 0, x1 = 1;
+
+    if (m == 1) {
+        return 0;
+    }
+
+    while (a > 1) {
+        q = a / m;
+        t = m;
+        m = a % m, a = t;
+        t = x0;
+        x0 = x1 - q * x0;
+        x1 = t;
+    }
+
+    if (x1 < 0) {
+        x1 += m0;
+    }
+    return x1;
+}
+
 
 void primefiller() {
     bool seive[MAX_SIZE];
@@ -41,13 +73,15 @@ void primefiller() {
 }
 
 int pickrandomprime() {
-    int k = rand() % prime_count;
-    int ret = prime[k];
-    for (int i = k; i < prime_count - 1; i++) {
-        prime[i] = prime[i + 1];
-    }
+    int k;
+    do {
+        k = rand() % prime_count;
+    } while (used[k]);
+
+    used[k] = true;
     prime_count--;
-    return ret;
+    
+    return prime[k];
 }
 
 void setkeys() {
@@ -56,18 +90,14 @@ void setkeys() {
     n = prime1 * prime2;
     int fi = (prime1 - 1) * (prime2 - 1);
     int e = 2;
-    while (1) {
-        if (gcd(e, fi) == 1)
-            break;
+    while (gcd(e,fi) != 1) {
         e++;
     }
+
     public_key = e;
-    int d = 2;
-    while (1) {
-        if ((d * e) % fi == 1)
-            break;
-        d++;
-    }
+    
+    int d = mod_inverse(e,fi);
+    
     private_key = d;
 }
 
@@ -75,13 +105,15 @@ long long int power(long long int x, unsigned int y, int p) {
     long long int res = 1;
     x = x % p;
     while (y > 0) {
-        if (y & 1)
+        if (y & 1) {
             res = (res * x) % p;
+        }   
         y = y >> 1;
         x = (x * x) % p;
     }
     return res;
 }
+
 
 long long int encrypt(double message) {
     int e = public_key;
@@ -103,6 +135,7 @@ long long int decrypt(int encrypted_text) {
     return decrypted;
 }
 
+
 void encoder(char *message, int *encoded) {
     int i = 0;
     while (message[i] != '\0') {
@@ -115,11 +148,13 @@ void encoder(char *message, int *encoded) {
 void decoder(int *encoded, char *decoded) {
     int i = 0;
     while (encoded[i] != -1) {
-        decoded[i] = (char)decrypt(encoded[i]);
+        int decrypted_value = decrypt(encoded[i]);
+        decoded[i] = (char)decrypted_value;
         i++;
     }
     decoded[i] = '\0'; // Marking end of decoded string
 }
+
 
 int main() {
     FILE* fptr;
@@ -132,7 +167,7 @@ int main() {
     scanf("%s",filename);
 
     fptr = fopen(filename, "r");
-    output_file = fopen("encrypted.txt", "w");
+    output_file = fopen("encrypted.txt", "wb");
 
     if (fptr == NULL || output_file == NULL) {
         printf("Failed to open the file.\n");
@@ -173,9 +208,9 @@ int main() {
         i++;
     }
 
-    // char decoded[100];
-    // decoder(encoded, decoded);
-    // printf("\n\nThe decoded message(decrypted by private key):\n%s\n", decoded);
+    char decoded[100];
+    decoder(encoded, decoded);
+    printf("\n\nThe decoded message(decrypted by private key):\n%s\n", decoded);
     
     fclose(fptr);
     fclose(output_file);
