@@ -2,54 +2,19 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include "helpers.h"
 
-#define MAX_SIZE 250
+#define MAX_SIZE 8192
 
-int prime[MAX_SIZE];
+unsigned long int prime[MAX_SIZE];
 int prime_count = 0;
-bool used[250] = {false};     //Array to track used primes 
+bool used[MAX_SIZE] = {false};     //Array to track used primes 
 
 int public_key;
 int private_key;
 int n;
 
-int gcd(int a, int b) {
-    if(a == 0) return b;
-    else{
-        while (b != 0) {
-            int temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
-}
-
-int mod_inverse(int a, int m) {
-    int m0 = m, t, q;
-    int x0 = 0, x1 = 1;
-
-    if (m == 1) {
-        return 0;
-    }
-
-    while (a > 1) {
-        q = a / m;
-        t = m;
-        m = a % m, a = t;
-        t = x0;
-        x0 = x1 - q * x0;
-        x1 = t;
-    }
-
-    if (x1 < 0) {
-        x1 += m0;
-    }
-    return x1;
-}
-
-
-void primefiller() {
+void primeFiller() {
     bool seive[MAX_SIZE];
     for (int i = 0; i < MAX_SIZE; i++) {
         seive[i] = true;
@@ -72,7 +37,7 @@ void primefiller() {
     }
 }
 
-int pickrandomprime() {
+int pickRandomPrime() {
     int k;
     do {
         k = rand() % prime_count;
@@ -85,8 +50,8 @@ int pickrandomprime() {
 }
 
 void setkeys() {
-    int prime1 = pickrandomprime();
-    int prime2 = pickrandomprime();
+    int prime1 = pickRandomPrime();
+    int prime2 = pickRandomPrime();
     n = prime1 * prime2;
     int fi = (prime1 - 1) * (prime2 - 1);
     int e = 2;
@@ -101,45 +66,23 @@ void setkeys() {
     private_key = d;
 }
 
-long long int power(long long int x, unsigned int y, int p) {
-    long long int res = 1;
-    x = x % p;
-    while (y > 0) {
-        if (y & 1) {
-            res = (res * x) % p;
-        }   
-        y = y >> 1;
-        x = (x * x) % p;
-    }
-    return res;
-}
-
-
-long long int encrypt(double message) {
-    int e = public_key;
-    long long int encrypted_text = 1;
-    while (e--) {
-        encrypted_text *= message;
-        encrypted_text %= n;
-    }
-    return encrypted_text;
-}
-
-long long int decrypt(int encrypted_text) {
-    int d = private_key;
-    long long int decrypted = 1;
-    while (d--) {
-        decrypted *= encrypted_text; 
-        decrypted %= n;  
-    }
-    return decrypted;
-}
-
+// long long int power(long long int x, unsigned int y, int p) {
+//     long long int res = 1;
+//     x = x % p;
+//     while (y > 0) {
+//         if (y & 1) {
+//             res = (res * x) % p;
+//         }   
+//         y = y >> 1;
+//         x = (x * x) % p;
+//     }
+//     return res;
+// }
 
 void encoder(char *message, int *encoded) {
     int i = 0;
     while (message[i] != '\0') {
-        encoded[i] = encrypt((int)message[i]);
+        encoded[i] = encrypt((int)message[i], n, public_key);
         i++;
     }
     encoded[i] = -1; // Marking end of encoded array
@@ -148,13 +91,12 @@ void encoder(char *message, int *encoded) {
 void decoder(int *encoded, char *decoded) {
     int i = 0;
     while (encoded[i] != -1) {
-        int decrypted_value = decrypt(encoded[i]);
+        int decrypted_value = decrypt(encoded[i], n, private_key);
         decoded[i] = (char)decrypted_value;
         i++;
     }
     decoded[i] = '\0'; // Marking end of decoded string
 }
-
 
 int main() {
     FILE* fptr;
@@ -195,9 +137,9 @@ int main() {
     // Add null terminator at the end of the buffer
     buffer[counter] = '\0';
 
-    primefiller();
+    primeFiller();
     setkeys();
-    int encoded[100];
+    int encoded[1000];
     encoder(buffer, encoded);
 
     printf("Initial message:\n%s\n\n", buffer);
@@ -208,7 +150,7 @@ int main() {
         i++;
     }
 
-    char decoded[100];
+    char decoded[1000];
     decoder(encoded, decoded);
     printf("\n\nThe decoded message(decrypted by private key):\n%s\n", decoded);
     
